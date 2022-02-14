@@ -22,6 +22,7 @@ L = 100  # lattice size is L
 J = 1.0  # gauge coupling parameter
 kB = 1.0  # the Boltzman constant
 
+## vv this metropolis code is not needed in this file
 
 def metropolis(s, T):
     '''
@@ -80,20 +81,20 @@ def randomLattice(L, p):
 import itertools
 
 
-spin_state_total=np.loadtxt('a.txt',dtype=int)
+spin_state_total=np.loadtxt('a.txt',dtype=int)  ## <--np.load('spin_states.npy')
 print(np.shape(spin_state_total))
 
 n_record_step = 1000
 n_total_step = 200000
 p = 0.5                           # probability for the initial random lattice
 Ts = np.linspace(0.0035, 0.005, 30) * J / kB
-distance = range(4,12,2)
+distance = range(4,12,2)  ## <-- unclear naming, maybe spin_spin_distance?
 L = 100
 L_sub=10
 
 complexity_total = []
 Integration_total=[]
-weight = np.logspace(0,L_sub-1,L_sub,endpoint=True,base=2)
+weight = np.logspace(0,L_sub-1,L_sub,endpoint=True,base=2)  
 
 for L_sub in distance:
     print("sub length is ", L_sub)
@@ -104,17 +105,18 @@ for L_sub in distance:
         print("T is ", T)
 
         H_bisys_total_ave = []
-        state_count_bisys = np.zeros((10, 260, 1026))
+        ## This is a complicated calculation: there should be a top level comment about what is happening
+        state_count_bisys = np.zeros((10, 260, 1026))  ## <-- this is messy: these numbers are called 'magic numbers' because there's no sign where they came from
         MI = []
         num_total = []
         H_sum_eachspin_total=[]
-        count_each_spin= np.zeros((100))
+        count_each_spin= np.zeros((100))  ## <-- this 100 and the one below should be replaced with L
         H_eachspin_total = []
         Integration_linear = np.zeros((100))
 
         for step in range(n_total_step):
-          if(step%200==0):
-              s = spin_state_total[step_T*n_total_step+step]
+          if(step%200==0):  ## <-- This could be done with range(0, n_total_step, 200) above.  Also the 200 should be a variable you define (magic number)
+              s = spin_state_total[step_T*n_total_step+step]  ## <-- this is messy: each temperature should be saved in its own .npy array
               s[s==-1] = 0
 
               # count the probability of each spin state
@@ -126,10 +128,10 @@ for L_sub in distance:
               # count the probability for each combination of L_sub number of subsystems
               for k in range(L_sub):
                 combination = list(itertools.combinations(s, k+1))
-                num = len(combination)
+                num = len(combination)  ## <-- should be more descriptive
                 num_total.append(num)
                 for combine_num in range(num):
-                    com_value = np.matmul(np.array(combination[combine_num]), np.array(weight[0:k+1].T))
+                    com_value = np.matmul(np.array(combination[combine_num]), np.array(weight[0:k+1].T))  ## <-- what is this doing?  is this how you keep track of the different spin states?
                     state_count_bisys[k,combine_num,int(com_value)] += 1
 
         #Take the first L_sub length spins as subsystem
@@ -153,6 +155,7 @@ for L_sub in distance:
 
         #calculate entropy of each spin
         for k in range(L_sub):
+        	## This could all be much shorter
             probability = []
             probability.append(count_each_spin[k]/n_record_step)
             probability.append(1- probability[0])
