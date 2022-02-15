@@ -32,7 +32,7 @@ Dist = range(1,100,5)
 
 #Calculate MI under the different temperatures and different spin-to-spin distance
 for num in range( len( Ts ) ):  # these are the temperatures
-    count = np.zeros((2000, 4))  # record the count
+    count = np.zeros((2000, 4))  # record the count  ## <-- What is this counting?  Why is the shape [2000, 4]?  Same with all the instantiations below
     probability_joint = [0, 0, 0, 0]  # record the joint probability
     probability = [0, 0, 0, 0]  # record the probability
     probability_joint_show = np.zeros((2, 2))
@@ -47,11 +47,11 @@ for num in range( len( Ts ) ):  # these are the temperatures
         #count spin states under different combinations and also different spin-to-spin distance
         for ave_num in range(ave):
             for r2 in Dist:
-                distance_num = int((r2-1)/5)
+                distance_num = int((r2-1)/5)  ## <-- What is this?  If you are trying to keep an index for the distances, try using "for distance_index, r2 in enumerate(Dist):"
                 loop = int(100 * distance_num)
                 r = ave_num
 
-                if (s[r] == 1 and s[r + r2 if r < L - r2 else r + r2 - L] == 1):
+                if (s[r] == 1 and s[r + r2 if r < L - r2 else r + r2 - L] == 1):  ## <-- replace this complicated if else with (r+r2) % L
                     count[ave_num+loop, 0] += 1
                 elif (s[r] == 1 and s[r + r2 if r < L - r2 else r + r2 - L] == -1):
                     count[ave_num+loop, 1] += 1

@@ -84,7 +84,7 @@ spinLattice_t_init = randomLattice(L, p)
 
 
 # use metropolis algo to record the spin state of random 1D lattices under different temperature
-for j in range(len(Ts)):  # these are the temperatures
+for j in range(len(Ts)):  # these are the temperatures  ## <-- for T in Ts:  then replace Ts[j] with T in all the metropolis calls below
 
     for i in range(100000):  # these are the MCT steps
         if i == 0:
@@ -98,4 +98,4 @@ for j in range(len(Ts)):  # these are the temperatures
             spin_state_record.append(temp)
 
 temp = np.array(spin_state_record,dtype=int)
-np.savetxt('spin_state.txt', temp, fmt='%d')
+# np.savetxt('spin_state.txt', temp, fmt='%d')  ## <-- np.save('spin_state.npy', temp)
