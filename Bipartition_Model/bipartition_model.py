@@ -2,6 +2,7 @@
 # %matplotlib inline
 from math import pi
 import numpy as np
+import itertools
 import matplotlib.pyplot as plt
 
 # change some of the defaults for plots
@@ -22,80 +23,26 @@ L = 100  # lattice size is L
 J = 1.0  # gauge coupling parameter
 kB = 1.0  # the Boltzman constant
 
-
-def metropolis(s, T):
-    '''
-    This runs the Metropolis algorithm for one unit of "Monte Carlo
-    time (MCT)", defined as N steps where N is the number of items in the
-    ensemble. In this case this is L*L.
-    '''
-    L = len(s)
-    oldE = energy(s)
-    for n in range(L):  # this loop is 1 MCT
-
-        # flip a random spin and calculate deltaE
-        i = randint(L)
-        s[i] *= -1  # flip the i-th spin
-
-        newE = energy(s)
-        deltaE = newE - oldE
-
-        # these are the Metropolis tests
-        if deltaE < 0:
-            oldE = newE
-            # keep the flipped spin because it lowers the energy
-        elif rand() < np.exp(- deltaE / (kB * T)):
-            oldE = newE
-            # keep the spin flip because a random number in [0,1)
-            # is less than exp( -dE / k_B T)
-        else:
-            # the spin flip is rejected
-            s[i] *= -1  # unflip the ij spin
-
-    return s
-
-
-'''
-Functions to calculate Energy (E) and Magnetic Moment (M) of the L*L spin lattice
-Particles at the edge of the lattice rollover for adjacent calculation using periodic boundary conditions through np.roll
-'''
-
-
-def energy(s):
-    # this is the energy for each site
-    E = -J * (s * np.roll(s, 1))
-    # and this is the avg energy per site
-    return np.sum(E) / L
-
-
-# Simple sum over spin of all particles
-def magnetization(s):
-    return np.sum(s) / L
-
-
-# Creates an LxL lattice of random integer spins with probability (p) to be +1 (and 1-p to be -1)
-def randomLattice(L, p):
-    return (rand(L) < p) * 2 - 1
-
-import itertools
-
-
-spin_state_total=np.loadtxt('a.txt',dtype=int)
+spin_state_total=np.loadtxt('spin_state_0.0035_0.005_1000.txt',dtype=int)
 print(np.shape(spin_state_total))
 
 n_record_step = 1000
 n_total_step = 200000
+step_size=int(n_total_step/n_record_step)
 p = 0.5                           # probability for the initial random lattice
 Ts = np.linspace(0.0035, 0.005, 30) * J / kB
-distance = range(4,12,2)
+length = range(4,12,2)
 L = 100
 L_sub=10
+sub_length_max=10
+combination_num_max=260
+conditon_num_max=1026
 
 complexity_total = []
 Integration_total=[]
 weight = np.logspace(0,L_sub-1,L_sub,endpoint=True,base=2)
 
-for L_sub in distance:
+for L_sub in length:
     print("sub length is ", L_sub)
     complexity_total = []
     Integration_total = []
@@ -104,17 +51,16 @@ for L_sub in distance:
         print("T is ", T)
 
         H_bisys_total_ave = []
-        state_count_bisys = np.zeros((10, 260, 1026))
+        state_count_bisys = np.zeros((sub_length_max, combination_num_max, conditon_num_max))
         MI = []
         num_total = []
         H_sum_eachspin_total=[]
-        count_each_spin= np.zeros((100))
+        count_each_spin= np.zeros((L))
         H_eachspin_total = []
-        Integration_linear = np.zeros((100))
+        Integration_linear = np.zeros((L))
 
-        for step in range(n_total_step):
-          if(step%200==0):
-              s = spin_state_total[step_T*n_total_step+step]
+        for step in range(n_record_step):
+              s = spin_state_total[step_T*n_record_step+step]
               s[s==-1] = 0
 
               # count the probability of each spin state
@@ -152,11 +98,10 @@ for L_sub in distance:
         print("MI is ", MI)
 
         #calculate entropy of each spin
+        probability = np.zeros((2))
         for k in range(L_sub):
-            probability = []
-            probability.append(count_each_spin[k]/n_record_step)
-            probability.append(1- probability[0])
-            probability=np.array(probability)
+            probability[0]=(count_each_spin[k]/n_record_step)
+            probability[1]=(1- probability[0])
             probability[probability == 0] = 1
             H_eachspin = -sum(probability * np.log2(probability))
             H_eachspin_total.append(H_eachspin)
