@@ -77,25 +77,25 @@ p = 0.5                           # probability for the initial random lattice
 T = 0.01 * J / kB                    # temp of the system in terms of coupling parameter and boltzmann constant
 L = 100                             #The length of model
 n = 200000                        #number of record Monte Carlo steps
+initstate = 30
 spin_state_record=[]
 
-Ts = np.linspace(30, 100, 60) * J / kB
-spinLattice_t_init = randomLattice(L, p)
-
+Ts = np.linspace(0.001, 0.004, 1) * J / kB
 
 # use metropolis algo to record the spin state of random 1D lattices under different temperature
-for j in range(len(Ts)):  # these are the temperatures
+for T in Ts:  # these are the temperatures
+    #for initstate_num in range(initstate):
+        spinLattice_t_init = randomLattice(L, p)
+        for i in range(100000):  # these are the MCT steps
+            if i == 0:
+                spinLattice_t = metropolis(spinLattice_t_init, T)
+            spinLattice_t = metropolis(spinLattice_t, T)
 
-    for i in range(100000):  # these are the MCT steps
-        if i == 0:
-            spinLattice_t = metropolis(spinLattice_t_init, Ts[j])
-        spinLattice_t = metropolis(spinLattice_t, Ts[j])
+        for i in range(n):  # these are the MCT steps
+            spinLattice_t = metropolis(spinLattice_t, T)
+            if(i%200==0):
+                temp = copy.copy(spinLattice_t)
+                spin_state_record.append(temp)
 
-    for i in range(n):  # these are the MCT steps
-        spinLattice_t = metropolis(spinLattice_t, Ts[j])
-        if (i % 200 == 0):
-            temp = copy.copy(spinLattice_t)
-            spin_state_record.append(temp)
-
-temp = np.array(spin_state_record,dtype=int)
-np.savetxt('spin_state.txt', temp, fmt='%d')
+        temp = np.array(spin_state_record,dtype=int)
+        np.save('spin_state_%f.npy'%(T), temp)
